@@ -9,4 +9,4 @@
 
    - 示例：
 
-     ![image-20230306150102504](examples.assets/image-20230306150102504.png)
+     ![image-20230306150102504](./examples.assets/image-20230306150102504.png)

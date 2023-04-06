@@ -15,13 +15,32 @@
 
   ```python
   # before optimization
-  def AddElem(self, oData) -> CElem:
-      oElem = CElem(oData.info)
-      # ...
-      self.m_Elems[oData.info] = oElem
-      return oElem
+  class CElemMgr:
+      def __init__(self):
+          self.m_Elems: Dict = {}
+  
+      def AddElem(self, oData) -> CElem:
+          oElem = CElem(oData.info)
+          # ...
+          self.m_Elems[oData.info] = oElem
+          return oElem
   
   # after optimization
+  # 使用池来存储被destroy的oElem，需要新增对象时再从池中取，并初始化
+  class CElemMgr:
+      def __init__(self):
+          self.m_Elems: Dict = {}
+  
+      def AddElem(self, oData) -> CElem:
+          oElem = CElem.New(oData.info)
+          # ...
+          return oElem
+  
+      def DestroyElem(self, oData):
+          oElem: CElem = self.m_Elems.pop(oData.info, None)
+          if oElem:
+              g_ElemPool.append(oElem)
+  
   class CElem:
       @classmethod
       def New(cls, oInfo) -> CElem:
@@ -34,11 +53,6 @@
   
   if "g_ElemPool" not in globals():
       g_ElemPool: List[CElem] = []
-  
-  def AddElem(self, oData) -> CElem:
-      oElem = CElem.New(oData.info)
-      # ...
-      return oElem
   ```
 
   本质上这个优化是没有减少内存的总消耗的，反而由于g_ElemPool中的内存冗余，会导致内存消耗增加，核心目的是为了避免小内存的高频申请与gc带来的总内存的不稳定的上升。（如果是go语言，那就可以直接申请一大块内存，用完后自动gc大块内存，这样会更好）
